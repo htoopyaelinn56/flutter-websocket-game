@@ -40,8 +40,8 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage> {
-  int x = 0;
-  int y = 0;
+  int x = 50;
+  int y = 50;
 
   final _focusNode = FocusNode();
 
@@ -56,20 +56,25 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     ref.listen(gameStreamProvider, (previous, next) {
       next.whenOrNull(data: (data) {
         if (data.clientsPosition != null) {
-          if (ref.read(playersStateControllerProvider).isEmpty) {
+          if (data.messageType == 'welcome') {
             ref.read(playersStateControllerProvider.notifier).feed(data.clientsPosition!);
-          } else {
-            if (ref.read(playersStateControllerProvider).length != data.clientCount!) {
-              ref.read(playersStateControllerProvider.notifier).add();
+          } else if (data.messageType == 'someone_joined') {
+            if (ref.read(playersStateControllerProvider).length <= data.clientCount!) {
+              if (data.myId != ref.read(myIdProvider)) {
+                ref.read(playersStateControllerProvider.notifier).add();
+              }
             }
           }
+        } else {
+          if (data.messageType == 'someone_left') {
+            ref.read(playersStateControllerProvider.notifier).remove(data.senderId!);
+          }
+          ref.read(playersStateControllerProvider.notifier).setPosition(
+                id: data.senderId ?? -1,
+                x: data.position?.x ?? 0,
+                y: data.position?.y ?? 0,
+              );
         }
-
-        ref.read(playersStateControllerProvider.notifier).setPosition(
-              id: data.senderId ?? -1,
-              x: data.position?.x ?? 0,
-              y: data.position?.y ?? 0,
-            );
       });
     });
 
@@ -197,7 +202,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               );
             },

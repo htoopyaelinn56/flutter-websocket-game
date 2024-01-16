@@ -22,6 +22,11 @@ class PlayersStateController extends Notifier<List<PlayerModel>> {
     state = [...state];
   }
 
+  void remove(int id) {
+    state.removeWhere((element) => element.playerId == id);
+    state = [...state];
+  }
+
   void setPosition({required int id, required int x, required int y}) {
     final index = state.map((e) => e.playerId).toList().indexOf(id);
 
